@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHENG CHEN STUDIO - 後台管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #d4a574;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: #333;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #d4a574;
+        }
+        
+        .section h2 {
+            color: #d4a574;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: #d4a574;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #b8935f;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .status {
+            background: #444;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .upload-area {
+            border: 2px dashed #666;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        
+        .upload-area:hover {
+            border-color: #d4a574;
+            background: #333;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .image-item {
+            background: #444;
+            padding: 10px;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 120px;
+            background: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        input[type="text"], input[type="url"], textarea {
+            width: 100%;
+            background: #555;
+            border: 1px solid #666;
+            color: white;
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        
+        .url-input-section {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #555;
+        }
+        
+        .url-input-section h4 {
+            color: #d4a574;
+            margin-bottom: 10px;
+        }
+        
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .url-input-group input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CHENG CHEN STUDIO 後台管理</h1>
+        
+        <!-- 系統控制 -->
+        <div class="section">
+            <h2>系統控制</h2>
+            <button onclick="testSystem()">測試系統</button>
+            <button onclick="clearAll()">清空所有資料</button>
+            <button onclick="openFrontend()">開啟前台</button>
+            <div class="status" id="systemStatus">系統準備中...</div>
+        </div>
+        
+        <!-- 主視覺圖片 -->
+        <div class="section">
+            <h2>主視覺圖片 (首頁輪播)</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="heroUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="heroTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('hero')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('heroInput').click()">
+                點擊上傳本地圖片
+            </div>
+            <input type="file" id="heroInput" accept="image/*" style="display:none;" onchange="uploadImage('hero', this)">
+            <div class="image-grid" id="heroGrid"></div>
+        </div>
+
+        <!-- 影片作品 -->
+        <div class="section">
+            <h2>影片作品</h2>
+            <div class="url-input-section">
+                <h4>YouTube 影片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="videoUrlInput" placeholder="輸入 YouTube 影片網址">
+                    <input type="text" id="videoTitleInput" placeholder="影片標題">
+                    <button onclick="addVideo()">新增影片</button>
+                </div>
+            </div>
+            
+            <div class="url-input-section">
+                <h4>GIF 動態圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="gifUrlInput" placeholder="輸入 GIF 網址">
+                    <input type="text" id="gifTitleInput" placeholder="GIF 標題">
+                    <button onclick="addGif()">新增 GIF</button>
+                </div>
+            </div>
+            
+            <div class="url-input-section">
+                <h4>或使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="videoImageUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="videoImageTitleInput" placeholder="圖片標題">
+                    <button onclick="addVideoImage()">新增圖片</button>
+                </div>
+            </div>
+            
+            <div class="upload-area" onclick="document.getElementById('videoInput').click()">
+                點擊上傳本地圖片或 GIF 檔案
+            </div>
+            <input type="file" id="videoInput" accept="image/*,.gif" style="display:none;" onchange="uploadVideoFile(this)">
+            <div class="image-grid" id="videoGrid"></div>
+        </div>
+        
+        <!-- 作品集分類 -->
+        <div class="section">
+            <h2>作品集 - 商業攝影</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="commercialUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="commercialTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('commercial')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('commercialInput').click()">
+                點擊上傳商業攝影作品
+            </div>
+            <input type="file" id="commercialInput" accept="image/*" style="display:none;" onchange="uploadImage('commercial', this)">
+            <div class="image-grid" id="commercialGrid"></div>
+        </div>
+        
+        <div class="section">
+            <h2>作品集 - 個人寫真</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="portraitUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="portraitTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('portrait')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('portraitInput').click()">
+                點擊上傳人像攝影作品
+            </div>
+            <input type="file" id="portraitInput" accept="image/*" style="display:none;" onchange="uploadImage('portrait', this)">
+            <div class="image-grid" id="portraitGrid"></div>
+        </div>
+        
+        <div class="section">
+            <h2>作品集 - 婚紗攝影</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="weddingUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="weddingTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('wedding')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('weddingInput').click()">
+                點擊上傳婚紗攝影作品
+            </div>
+            <input type="file" id="weddingInput" accept="image/*" style="display:none;" onchange="uploadImage('wedding', this)">
+            <div class="image-grid" id="weddingGrid"></div>
+        </div>
+
+        <div class="section">
+            <h2>作品集 - 家庭親子</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="familyUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="familyTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('family')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('familyInput').click()">
+                點擊上傳家庭親子攝影作品
+            </div>
+            <input type="file" id="familyInput" accept="image/*" style="display:none;" onchange="uploadImage('family', this)">
+            <div class="image-grid" id="familyGrid"></div>
+        </div>
+        
+        <div class="section">
+            <h2>作品集 - 藝術創作</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="artisticUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="artisticTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('artistic')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('artisticInput').click()">
+                點擊上傳藝術創作作品
+            </div>
+            <input type="file" id="artisticInput" accept="image/*" style="display:none;" onchange="uploadImage('artistic', this)">
+            <div class="image-grid" id="artisticGrid"></div>
+        </div>
+
+        <div class="section">
+            <h2>作品集 - 活動攝影</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="eventUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="eventTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('event')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('eventInput').click()">
+                點擊上傳活動攝影作品
+            </div>
+            <input type="file" id="eventInput" accept="image/*" style="display:none;" onchange="uploadImage('event', this)">
+            <div class="image-grid" id="eventGrid"></div>
+        </div>
+        
+        <!-- 服務項目圖片 -->
+        <div class="section">
+            <h2>服務項目圖片</h2>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務01 - 商業攝影</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service1UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service1TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service1')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service1Grid"></div>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務02 - 攝影棚租借</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service2UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service2TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service2')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service2Grid"></div>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務03 - 個人寫真</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service3UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service3TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service3')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service3Grid"></div>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務04 - 婚紗攝影</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service4UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service4TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service4')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service4Grid"></div>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務05 - 家庭親子</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service5UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service5TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service5')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service5Grid"></div>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 6px;">
+                <h3 style="color: #d4a574;">服務06 - 藝術創作</h3>
+                <div class="url-input-section">
+                    <div class="url-input-group">
+                        <input type="url" id="service6UrlInput" placeholder="輸入圖片網址">
+                        <input type="text" id="service6TitleInput" placeholder="標題">
+                        <button onclick="addServiceImage('service6')">新增</button>
+                    </div>
+                </div>
+                <div class="image-grid" id="service6Grid"></div>
+            </div>
+        </div>
+        
+        <!-- 關於我們圖片 -->
+        <div class="section">
+            <h2>關於我們圖片</h2>
+            <div class="url-input-section">
+                <h4>使用圖片網址</h4>
+                <div class="url-input-group">
+                    <input type="url" id="aboutUrlInput" placeholder="輸入圖片網址">
+                    <input type="text" id="aboutTitleInput" placeholder="標題">
+                    <button onclick="addImageByUrl('about')">新增</button>
+                </div>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('aboutInput').click()">
+                點擊上傳關於我們圖片
+            </div>
+            <input type="file" id="aboutInput" accept="image/*" style="display:none;" onchange="uploadImage('about', this)">
+            <div class="image-grid" id="aboutGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // 網站資料結構
+        let websiteData = {
+            hero: [],
+            commercial: [],
+            portrait: [],
+            wedding: [],
+            family: [],
+            event: [],
+            artistic: [],
+            service1: [],
+            service2: [],
+            service3: [],
+            service4: [],
+            service5: [],
+            service6: [],
+            about: [],
+            videoMedia: []
+        };
+        
+        // 分類中文名稱
+        const categoryNames = {
+            hero: '主視覺輪播',
+            commercial: '商業攝影',
+            portrait: '人像攝影',
+            wedding: '婚紗攝影', 
+            family: '家庭親子',
+            event: '活動攝影',
+            artistic: '藝術創作',
+            service1: '服務01',
+            service2: '服務02',
+            service3: '服務03',
+            service4: '服務04',
+            service5: '服務05',
+            service6: '服務06',
+            about: '關於我們',
+            videoMedia: '影片作品'
+        };
+        
+        // 更新狀態
+        function updateStatus(message) {
+            const statusElement = document.getElementById('systemStatus');
+            const timestamp = new Date().toLocaleTimeString();
+            const newMessage = timestamp + ': ' + message;
+            statusElement.textContent = newMessage + '\n' + statusElement.textContent;
+            console.log('Status:', message);
+        }
+        
+        // 測試系統
+        function testSystem() {
+            updateStatus('系統測試完成 - 一切正常');
+        }
+        
+        // 通過網址添加圖片
+        function addImageByUrl(category) {
+            const urlInput = document.getElementById(category + 'UrlInput');
+            const titleInput = document.getElementById(category + 'TitleInput');
+            
+            const url = urlInput.value.trim();
+            const title = titleInput.value.trim() || '未命名圖片';
+            
+            if (!url) {
+                updateStatus('請輸入圖片網址');
+                return;
+            }
+            
+            updateStatus('正在添加圖片到 ' + categoryNames[category]);
+            
+            const img = new Image();
+            img.onload = function() {
+                const imageData = {
+                    id: Date.now(),
+                    url: url,
+                    title: title,
+                    description: categoryNames[category] + ' 圖片',
+                    alt: title,
+                    type: 'url'
+                };
+                
+                websiteData[category].push(imageData);
+                renderCategory(category);
+                saveToLocalStorage();
+                
+                urlInput.value = '';
+                titleInput.value = '';
+                
+                updateStatus('成功添加圖片到 ' + categoryNames[category]);
+            };
+            
+            img.onerror = function() {
+                updateStatus('圖片網址無效或無法載入');
+            };
+            
+            img.src = url;
+        }
+        
+        // 添加服務圖片
+        function addServiceImage(serviceId) {
+            const urlInput = document.getElementById(serviceId + 'UrlInput');
+            const titleInput = document.getElementById(serviceId + 'TitleInput');
+            
+            const url = urlInput.value.trim();
+            const title = titleInput.value.trim() || '未命名圖片';
+            
+            if (!url) {
+                updateStatus('請輸入圖片網址');
+                return;
+            }
+            
+            updateStatus('正在添加圖片到 ' + categoryNames[serviceId]);
+            
+            const img = new Image();
+            img.onload = function() {
+                const imageData = {
+                    id: Date.now(),
+                    url: url,
+                    title: title,
+                    description: categoryNames[serviceId] + ' 圖片',
+                    alt: title,
+                    type: 'url'
+                };
+                
+                websiteData[serviceId] = [imageData];
+                renderCategory(serviceId);
+                saveToLocalStorage();
+                
+                urlInput.value = '';
+                titleInput.value = '';
+                
+                updateStatus('成功添加圖片到 ' + categoryNames[serviceId]);
+            };
+            
+            img.onerror = function() {
+                updateStatus('圖片網址無效');
+            };
+            
+            img.src = url;
+        }
+        
+        // YouTube 影片 ID 提取
+        function getYouTubeVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        
+        // 添加 YouTube 影片
+        function addVideo() {
+            const urlInput = document.getElementById('videoUrlInput');
+            const titleInput = document.getElementById('videoTitleInput');
+            
+            const url = urlInput.value.trim();
+            const title = titleInput.value.trim() || '影片作品';
+            
+            if (!url) {
+                updateStatus('請輸入影片網址');
+                return;
+            }
+            
+            updateStatus('正在添加影片...');
+            
+            const videoId = getYouTubeVideoId(url);
+            let embedUrl = url;
+            let mediaType = 'video';
+            
+            if (videoId) {
+                embedUrl = 'https://www.youtube.com/embed/' + videoId;
+                mediaType = 'youtube';
+            }
+            
+            const videoData = {
+                id: Date.now(),
+                url: url,
+                embedUrl: embedUrl,
+                title: title,
+                description: '影片作品',
+                alt: title,
+                type: mediaType
+            };
+            
+            websiteData.videoMedia = [videoData];
+            renderVideoMedia();
+            saveToLocalStorage();
+            
+            urlInput.value = '';
+            titleInput.value = '';
+            
+            updateStatus('成功添加影片');
+        }
+        
+        // 添加影片圖片
+        function addVideoImage() {
+            const urlInput = document.getElementById('videoImageUrlInput');
+            const titleInput = document.getElementById('videoImageTitleInput');
+            
+            const url = urlInput.value.trim();
+            const title = titleInput.value.trim() || '影片作品圖片';
+            
+            if (!url) {
+                updateStatus('請輸入圖片網址');
+                return;
+            }
+            
+            updateStatus('正在添加圖片...');
+            
+            const img = new Image();
+            img.onload = function() {
+                const imageData = {
+                    id: Date.now(),
+                    url: url,
+                    title: title,
+                    description: '影片作品圖片',
+                    alt: title,
+                    type: 'image'
+                };
+                
+                websiteData.videoMedia = [imageData];
+                renderVideoMedia();
+                saveToLocalStorage();
+                
+                urlInput.value = '';
+                titleInput.value = '';
+                
+                updateStatus('成功添加圖片');
+            };
+            
+            img.onerror = function() {
+                updateStatus('圖片網址無效');
+            };
+            
+            img.src = url;
+        }
+        
+        // 上傳圖片
+        function uploadImage(category, input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                updateStatus('檔案過大，請選擇小於5MB的圖片');
+                return;
+            }
+            
+            updateStatus('正在上傳圖片到 ' + categoryNames[category]);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = {
+                    id: Date.now(),
+                    url: e.target.result,
+                    title: file.name.split('.')[0],
+                    description: categoryNames[category] + ' 圖片',
+                    alt: file.name.split('.')[0],
+                    type: 'base64'
+                };
+                
+                websiteData[category].push(imageData);
+                renderCategory(category);
+                saveToLocalStorage();
+                
+                updateStatus('成功上傳圖片到 ' + categoryNames[category]);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // 添加 GIF
+        function addGif() {
+            const urlInput = document.getElementById('gifUrlInput');
+            const titleInput = document.getElementById('gifTitleInput');
+            
+            const url = urlInput.value.trim();
+            const title = titleInput.value.trim() || 'GIF 作品';
+            
+            if (!url) {
+                updateStatus('請輸入 GIF 網址');
+                return;
+            }
+            
+            updateStatus('正在添加 GIF...');
+            
+            const img = new Image();
+            img.onload = function() {
+                const gifData = {
+                    id: Date.now(),
+                    url: url,
+                    title: title,
+                    description: 'GIF 動態圖片',
+                    alt: title,
+                    type: 'gif'
+                };
+                
+                websiteData.videoMedia = [gifData];
+                renderVideoMedia();
+                saveToLocalStorage();
+                
+                urlInput.value = '';
+                titleInput.value = '';
+                
+                updateStatus('成功添加 GIF');
+            };
+            
+            img.onerror = function() {
+                updateStatus('GIF 網址無效');
+            };
+            
+            img.src = url;
+        }
+        
+        // 上傳影片檔案（包含 GIF）
+        function uploadVideoFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // 檢查檔案大小，GIF 允許較大檔案
+            const maxSize = file.name.toLowerCase().endsWith('.gif') ? 20 * 1024 * 1024 : 5 * 1024 * 1024;
+            const sizeLimit = file.name.toLowerCase().endsWith('.gif') ? '20MB' : '5MB';
+            
+            if (file.size > maxSize) {
+                updateStatus('檔案過大，請選擇小於' + sizeLimit + '的檔案');
+                return;
+            }
+            
+            updateStatus('正在上傳檔案... 檔案大小: ' + (file.size / 1024 / 1024).toFixed(2) + 'MB');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const isGif = file.name.toLowerCase().endsWith('.gif') || file.type === 'image/gif';
+                
+                const fileData = {
+                    id: Date.now(),
+                    url: e.target.result,
+                    title: file.name.split('.')[0],
+                    description: isGif ? 'GIF 動態圖片' : '影片作品圖片',
+                    alt: file.name.split('.')[0],
+                    type: isGif ? 'gif' : 'image'
+                };
+                
+                websiteData.videoMedia = [fileData];
+                renderVideoMedia();
+                saveToLocalStorage();
+                
+                updateStatus('成功上傳' + (isGif ? ' GIF' : '圖片') + ' - 檔案大小: ' + (file.size / 1024 / 1024).toFixed(2) + 'MB');
+            };
+            
+            reader.onerror = function() {
+                updateStatus('檔案上傳失敗，可能是檔案損壞或瀏覽器記憶體不足');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // 渲染分類
+        function renderCategory(category) {
+            const grid = document.getElementById(category + 'Grid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            if (!websiteData[category]) return;
+            
+            websiteData[category].forEach(function(item) {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                
+                div.innerHTML = '<div class="image-preview">' +
+                    '<img src="' + item.url + '" alt="' + item.alt + '" onerror="this.style.display=\'none\'">' +
+                    '</div>' +
+                    '<input type="text" value="' + item.title + '" onchange="updateItem(' + item.id + ', \'' + category + '\', \'title\', this.value)" placeholder="標題">' +
+                    '<textarea onchange="updateItem(' + item.id + ', \'' + category + '\', \'description\', this.value)" placeholder="描述" rows="2">' + item.description + '</textarea>' +
+                    '<button class="btn-small btn-danger" onclick="deleteItem(' + item.id + ', \'' + category + '\')">刪除</button>';
+                grid.appendChild(div);
+            });
+        }
+        
+        // 渲染影片媒體
+        function renderVideoMedia() {
+            const grid = document.getElementById('videoGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            if (!websiteData.videoMedia || websiteData.videoMedia.length === 0) return;
+            
+            websiteData.videoMedia.forEach(function(item) {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                
+                let preview = '';
+                if (item.type === 'youtube') {
+                    preview = '<iframe src="' + item.embedUrl + '" frameborder="0" allowfullscreen style="width:100%; height:100%;"></iframe>';
+                } else if (item.type === 'gif') {
+                    preview = '<img src="' + item.url + '" alt="' + item.alt + '" style="width:100%; height:100%; object-fit:cover;" title="GIF 動態圖片">';
+                } else if (item.type === 'image') {
+                    preview = '<img src="' + item.url + '" alt="' + item.alt + '" style="width:100%; height:100%; object-fit:cover;">';
+                } else {
+                    preview = '<div style="padding:20px; text-align:center;">影片: ' + item.title + '</div>';
+                }
+                
+                div.innerHTML = '<div class="image-preview" style="height:150px;">' + preview + '</div>' +
+                    '<input type="text" value="' + item.title + '" onchange="updateVideoMediaItem(' + item.id + ', \'title\', this.value)" placeholder="標題">' +
+                    '<button class="btn-small btn-danger" onclick="deleteVideoMediaItem(' + item.id + ')">刪除</button>';
+                grid.appendChild(div);
+            });
+        }
+        
+        // 更新項目
+        function updateItem(id, category, field, value) {
+            const item = websiteData[category].find(function(i) { return i.id === id; });
+            if (item) {
+                item[field] = value;
+                saveToLocalStorage();
+                updateStatus('已更新 ' + field);
+            }
+        }
+        
+        // 更新影片媒體項目
+        function updateVideoMediaItem(id, field, value) {
+            const item = websiteData.videoMedia.find(function(i) { return i.id === id; });
+            if (item) {
+                item[field] = value;
+                saveToLocalStorage();
+                updateStatus('已更新 ' + field);
+            }
+        }
+        
+        // 刪除項目
+        function deleteItem(id, category) {
+            if (confirm('確定要刪除這個項目嗎？')) {
+                websiteData[category] = websiteData[category].filter(function(i) { return i.id !== id; });
+                renderCategory(category);
+                saveToLocalStorage();
+                updateStatus('已刪除項目');
+            }
+        }
+        
+        // 刪除影片媒體項目
+        function deleteVideoMediaItem(id) {
+            if (confirm('確定要刪除這個項目嗎？')) {
+                websiteData.videoMedia = websiteData.videoMedia.filter(function(i) { return i.id !== id; });
+                renderVideoMedia();
+                saveToLocalStorage();
+                updateStatus('已刪除項目');
+            }
+        }
+        
+        // 保存到 localStorage
+        function saveToLocalStorage() {
+            try {
+                const dataToSave = JSON.stringify(websiteData);
+                localStorage.setItem('chengchen_images', dataToSave);
+                localStorage.setItem('chengchen_last_update', Date.now().toString());
+                
+                console.log('資料已保存:', websiteData);
+                
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'chengchen_images',
+                    newValue: dataToSave
+                }));
+                
+                return true;
+            } catch (error) {
+                updateStatus('保存失敗: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 從 localStorage 載入
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('chengchen_images');
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    
+                    Object.keys(websiteData).forEach(function(category) {
+                        if (loaded[category] && Array.isArray(loaded[category])) {
+                            websiteData[category] = loaded[category];
+                        }
+                    });
+                    
+                    Object.keys(websiteData).forEach(function(category) {
+                        if (category === 'videoMedia') {
+                            renderVideoMedia();
+                        } else {
+                            renderCategory(category);
+                        }
+                    });
+                    
+                    updateStatus('資料載入完成');
+                    return true;
+                }
+            } catch (error) {
+                updateStatus('載入失敗: ' + error.message);
+            }
+            return false;
+        }
+        
+        // 清空所有資料
+        function clearAll() {
+            if (confirm('確定要清空所有資料嗎？此操作無法復原。')) {
+                localStorage.removeItem('chengchen_images');
+                localStorage.removeItem('chengchen_last_update');
+                
+                Object.keys(websiteData).forEach(function(key) {
+                    websiteData[key] = [];
+                });
+                
+                Object.keys(websiteData).forEach(function(category) {
+                    if (category === 'videoMedia') {
+                        renderVideoMedia();
+                    } else {
+                        renderCategory(category);
+                    }
+                });
+                
+                updateStatus('所有資料已清空');
+            }
+        }
+        
+        // 開啟前台
+        function openFrontend() {
+            saveToLocalStorage();
+            updateStatus('正在開啟前台網站...');
+            
+            const frontendWindow = window.open('index.html', '_blank');
+            if (frontendWindow) {
+                updateStatus('前台網站已開啟');
+            } else {
+                updateStatus('請手動開啟 index.html');
+            }
+        }
+        
+        // 頁面載入時執行
+        window.addEventListener('load', function() {
+            updateStatus('系統啟動中...');
+            
+            if (loadFromLocalStorage()) {
+                updateStatus('系統啟動完成 - 資料已載入');
+            } else {
+                updateStatus('系統啟動完成 - 請開始上傳圖片');
+            }
+            
+            console.log('後台管理系統已啟動');
+        });
+        
+        // 定期保存
+        setInterval(function() {
+            const hasData = Object.values(websiteData).some(function(category) {
+                return category.length > 0;
+            });
+            if (hasData) {
+                saveToLocalStorage();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
